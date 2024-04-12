@@ -10,7 +10,7 @@ An efficient, convenient and lightweight grow-only concurrent data structure all
 
 ## Comparison to `ConcurrentBag`
 
-Note that [`ConcurrentBag`](https://crates.io/crates/orx-concurrent-vec) is a similar structure with the following differences.
+Note that [`ConcurrentBag`](https://crates.io/crates/orx-concurrent-bag) is a similar structure with the following differences.
 
 ||`ConcurrentBag`|`ConcurrentOrderedBag`|
 |---|---|---|
