@@ -175,8 +175,8 @@ use std::{
 ///     std::thread::scope(|s| {
 ///         for _ in 0..num_threads {
 ///             s.spawn(|| {
-///                 while let Some(next) = inputs.next_exact_chunk(chunk_size) {
-///                     unsafe { out.set_values(next.begin_idx(), next.values().map(map)) };
+///                 while let Some(next) = inputs.next_chunk(chunk_size) {
+///                     unsafe { out.set_values(next.begin_idx, next.values.map(map)) };
 ///                 }
 ///             });
 ///         }

@@ -1,4 +1,4 @@
-use orx_concurrent_iter::{ExactSizeConcurrentIter, IntoConcurrentIter, NextChunk};
+use orx_concurrent_iter::{ExactSizeConcurrentIter, IntoConcurrentIter};
 use orx_concurrent_ordered_bag::*;
 use orx_pinned_vec::PinnedVec;
 use test_case::test_matrix;
@@ -22,8 +22,8 @@ where
     std::thread::scope(|s| {
         for _ in 0..num_threads {
             s.spawn(|| {
-                while let Some(next) = inputs.next_exact_chunk(chunk_size) {
-                    unsafe { out.set_values(next.begin_idx(), next.values().map(map)) };
+                while let Some(next) = inputs.next_chunk(chunk_size) {
+                    unsafe { out.set_values(next.begin_idx, next.values.map(map)) };
                 }
             });
         }
