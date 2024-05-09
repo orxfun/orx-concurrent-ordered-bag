@@ -1,6 +1,5 @@
-use orx_concurrent_iter::{ExactSizeConcurrentIter, IntoConcurrentIter, NextChunk};
+use orx_concurrent_iter::{ConcurrentIter, IntoConcurrentIter};
 use orx_concurrent_ordered_bag::*;
-use orx_pinned_vec::PinnedVec;
 use test_case::test_matrix;
 
 const NUM_RERUNS: usize = 1;
@@ -22,8 +21,8 @@ fn write_at_odd_even_batches(num_threads: usize, len: usize, chunk_size: usize) 
         std::thread::scope(|s| {
             for _ in 0..num_threads {
                 s.spawn(move || {
-                    while let Some(next) = con_iter.next_exact_chunk(chunk_size) {
-                        unsafe { con_bag.set_values(next.begin_idx(), next.values().map(process)) };
+                    while let Some(next) = con_iter.next_chunk(chunk_size) {
+                        unsafe { con_bag.set_values(next.begin_idx, next.values.map(process)) };
                     }
                 });
             }
@@ -54,8 +53,8 @@ fn vec_into_con_iter_long_process(num_threads: usize, len: usize, chunk_size: us
         std::thread::scope(|s| {
             for _ in 0..num_threads {
                 s.spawn(move || {
-                    while let Some(next) = con_iter.next_exact_chunk(chunk_size) {
-                        let idx = next.begin_idx();
+                    while let Some(next) = con_iter.next_chunk(chunk_size) {
+                        let idx = next.begin_idx;
                         let value = idx + 1;
                         let mut sum = 1f64;
                         for i in 0..(1024 * 16) {
@@ -65,7 +64,7 @@ fn vec_into_con_iter_long_process(num_threads: usize, len: usize, chunk_size: us
                         }
                         assert!(sum > 0f64);
 
-                        unsafe { con_bag.set_values(next.begin_idx(), next.values().map(process)) };
+                        unsafe { con_bag.set_values(next.begin_idx, next.values.map(process)) };
                     }
                 });
             }
