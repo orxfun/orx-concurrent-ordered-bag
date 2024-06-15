@@ -36,7 +36,7 @@ impl<T> ConcurrentOrderedBag<T, SplitVec<T, Linear>> {
     ///
     /// This leads to a [`orx_pinned_concurrent_col::PinnedConcurrentCol::maximum_capacity`] of `fragments_capacity * 2 ^ constant_fragment_capacity_exponent`.
     ///
-    /// Whenever this capacity is not sufficient, fragments capacity can be increased by using the  [`orx_pinned_concurrent_col::PinnedConcurrentCol::reserve_maximum_capacity`] method.    
+    /// Whenever this capacity is not sufficient, fragments capacity can be increased by using the  [`orx_pinned_concurrent_col::PinnedConcurrentCol::reserve_maximum_capacity`] method.
     pub fn with_linear_growth(
         constant_fragment_capacity_exponent: usize,
         fragments_capacity: usize,
