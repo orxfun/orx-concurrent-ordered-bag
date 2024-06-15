@@ -1,4 +1,5 @@
 use orx_pinned_concurrent_col::{ConcurrentState, PinnedConcurrentCol, WritePermit};
+use orx_pinned_vec::PinnedVec;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 pub struct ConcurrentOrderedBagState {
@@ -12,7 +13,7 @@ impl ConcurrentState for ConcurrentOrderedBagState {
         false
     }
 
-    fn new_for_pinned_vec<T, P: orx_fixed_vec::prelude::PinnedVec<T>>(pinned_vec: &P) -> Self {
+    fn new_for_pinned_vec<T, P: PinnedVec<T>>(pinned_vec: &P) -> Self {
         Self {
             is_growing: false.into(),
             len: pinned_vec.len().into(),
@@ -22,7 +23,7 @@ impl ConcurrentState for ConcurrentOrderedBagState {
 
     fn write_permit<T, P, S>(&self, col: &PinnedConcurrentCol<T, P, S>, idx: usize) -> WritePermit
     where
-        P: orx_fixed_vec::prelude::PinnedVec<T>,
+        P: PinnedVec<T>,
         S: ConcurrentState,
     {
         match idx.cmp(&col.capacity()) {
@@ -57,6 +58,13 @@ impl ConcurrentState for ConcurrentOrderedBagState {
         self.num_pushed
             .fetch_add(end_idx - begin_idx, Ordering::AcqRel);
     }
+
+    fn try_get_no_gap_len(&self) -> Option<usize> {
+        match self.num_pushed().cmp(&self.len()) {
+            std::cmp::Ordering::Equal => Some(self.len()),
+            _ => None,
+        }
+    }
 }
 
 impl ConcurrentOrderedBagState {
@@ -64,6 +72,7 @@ impl ConcurrentOrderedBagState {
     pub fn len(&self) -> usize {
         self.len.load(Ordering::Relaxed)
     }
+
     pub fn num_pushed(&self) -> usize {
         self.num_pushed.load(Ordering::Relaxed)
     }
