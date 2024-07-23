@@ -1,6 +1,6 @@
 use orx_concurrent_iter::{ExactSizeConcurrentIter, IntoConcurrentIter};
 use orx_concurrent_ordered_bag::*;
-use orx_pinned_vec::PinnedVec;
+use orx_pinned_vec::IntoConcurrentPinnedVec;
 use test_case::test_matrix;
 
 fn parallel_map<In, Out, Map, Inputs>(
@@ -32,7 +32,10 @@ where
     outputs
 }
 
-fn validate_output<P: PinnedVec<usize>>(output: ConcurrentOrderedBag<usize, P>, len: usize) {
+fn validate_output<P: IntoConcurrentPinnedVec<usize>>(
+    output: ConcurrentOrderedBag<usize, P>,
+    len: usize,
+) {
     let output = unsafe { output.into_inner().unwrap_only_if_counts_match() };
     assert_eq!(output.len(), len);
 
