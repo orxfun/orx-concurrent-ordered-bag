@@ -1,6 +1,7 @@
 use crate::bag::ConcurrentOrderedBag;
-use orx_fixed_vec::{FixedVec, PinnedVec};
-use orx_split_vec::{Doubling, Linear, Recursive, SplitVec};
+use orx_fixed_vec::FixedVec;
+use orx_pinned_vec::IntoConcurrentPinnedVec;
+use orx_split_vec::{Doubling, Linear, SplitVec};
 
 impl<T> Default for ConcurrentOrderedBag<T, SplitVec<T, Doubling>> {
     /// Creates a new concurrent bag by creating and wrapping up a new [`SplitVec<T, Doubling>`](https://docs.rs/orx-split-vec/latest/orx_split_vec/struct.Doubling.html) as the underlying storage.
@@ -18,13 +19,6 @@ impl<T> ConcurrentOrderedBag<T, SplitVec<T, Doubling>> {
     /// Creates a new concurrent bag by creating and wrapping up a new [`SplitVec<T, Doubling>`](https://docs.rs/orx-split-vec/latest/orx_split_vec/struct.Doubling.html) as the underlying storage.
     pub fn with_doubling_growth() -> Self {
         Self::new_from_pinned(SplitVec::with_doubling_growth_and_fragments_capacity(32))
-    }
-}
-
-impl<T> ConcurrentOrderedBag<T, SplitVec<T, Recursive>> {
-    /// Creates a new concurrent bag by creating and wrapping up a new [`SplitVec<T, Recursive>`](https://docs.rs/orx-split-vec/latest/orx_split_vec/struct.Recursive.html) as the underlying storage.
-    pub fn with_recursive_growth() -> Self {
-        Self::new_from_pinned(SplitVec::with_recursive_growth_and_fragments_capacity(32))
     }
 }
 
@@ -66,7 +60,7 @@ impl<T> ConcurrentOrderedBag<T, FixedVec<T>> {
 // from
 impl<T, P> From<P> for ConcurrentOrderedBag<T, P>
 where
-    P: PinnedVec<T>,
+    P: IntoConcurrentPinnedVec<T>,
 {
     /// `ConcurrentBag<T>` uses any `PinnedVec<T>` implementation as the underlying storage.
     ///

@@ -1,11 +1,8 @@
 use crate::{failures::IntoInnerResult, state::ConcurrentOrderedBagState};
 use orx_pinned_concurrent_col::PinnedConcurrentCol;
-use orx_pinned_vec::PinnedVec;
+use orx_pinned_vec::IntoConcurrentPinnedVec;
 use orx_split_vec::{Doubling, SplitVec};
-use std::{
-    cmp::Ordering,
-    ops::{Deref, DerefMut},
-};
+use std::cmp::Ordering;
 
 /// An efficient, convenient and lightweight grow-only concurrent data structure allowing high performance and ordered concurrent collection.
 ///
@@ -243,14 +240,14 @@ use std::{
 /// * ⟹ no read & write race condition exists.
 pub struct ConcurrentOrderedBag<T, P = SplitVec<T, Doubling>>
 where
-    P: PinnedVec<T>,
+    P: IntoConcurrentPinnedVec<T>,
 {
-    core: PinnedConcurrentCol<T, P, ConcurrentOrderedBagState>,
+    core: PinnedConcurrentCol<T, P::ConPinnedVec, ConcurrentOrderedBagState>,
 }
 
 impl<T, P> ConcurrentOrderedBag<T, P>
 where
-    P: PinnedVec<T>,
+    P: IntoConcurrentPinnedVec<T>,
 {
     /// Converts the bag into [`IntoInnerResult`] which might then unwrapped to access the underlying pinned vector.
     pub fn into_inner(self) -> IntoInnerResult<P> {
@@ -381,12 +378,17 @@ where
     /// Note that although both methods are unsafe, it is much easier to achieve required safety guarantees with `set_values` or `set_n_values`;
     /// hence, they must be preferred unless there is a good reason to acquire mutable slices.
     /// One such example case is to copy results directly into the output's slices, which could be more performant in a very critical scenario.
-    pub unsafe fn n_items_buffer_as_mut_slices<'a>(
+    pub unsafe fn n_items_buffer_as_mut_slices(
         &self,
         begin_idx: usize,
         num_items: usize,
-    ) -> P::SliceMutIter<'a> {
+    ) -> P::SliceMutIter<'_> {
         self.core.n_items_buffer_as_mut_slices(begin_idx, num_items)
+    }
+
+    /// Clears the concurrent bag.
+    pub fn clear(&mut self) {
+        unsafe { self.core.clear(self.core.state().len()) };
     }
 }
 
@@ -394,7 +396,7 @@ where
 
 impl<T, P> ConcurrentOrderedBag<T, P>
 where
-    P: PinnedVec<T>,
+    P: IntoConcurrentPinnedVec<T>,
 {
     pub(crate) fn new_from_pinned(pinned_vec: P) -> Self {
         let core = PinnedConcurrentCol::new_from_pinned(pinned_vec);
@@ -404,26 +406,6 @@ where
 
 // TRAITS
 
-impl<T, P> Deref for ConcurrentOrderedBag<T, P>
-where
-    P: PinnedVec<T>,
-{
-    type Target = PinnedConcurrentCol<T, P, ConcurrentOrderedBagState>;
+unsafe impl<T: Sync, P: IntoConcurrentPinnedVec<T>> Sync for ConcurrentOrderedBag<T, P> {}
 
-    fn deref(&self) -> &Self::Target {
-        &self.core
-    }
-}
-
-impl<T, P> DerefMut for ConcurrentOrderedBag<T, P>
-where
-    P: PinnedVec<T>,
-{
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.core
-    }
-}
-
-unsafe impl<T: Sync, P: PinnedVec<T>> Sync for ConcurrentOrderedBag<T, P> {}
-
-unsafe impl<T: Send, P: PinnedVec<T>> Send for ConcurrentOrderedBag<T, P> {}
+unsafe impl<T: Send, P: IntoConcurrentPinnedVec<T>> Send for ConcurrentOrderedBag<T, P> {}

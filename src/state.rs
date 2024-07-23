@@ -1,5 +1,5 @@
 use orx_pinned_concurrent_col::{ConcurrentState, PinnedConcurrentCol, WritePermit};
-use orx_pinned_vec::PinnedVec;
+use orx_pinned_vec::{ConcurrentPinnedVec, PinnedVec};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 pub struct ConcurrentOrderedBagState {
@@ -21,9 +21,17 @@ impl ConcurrentState for ConcurrentOrderedBagState {
         }
     }
 
+    fn new_for_con_pinned_vec<T, P: ConcurrentPinnedVec<T>>(_: &P, len: usize) -> Self {
+        Self {
+            is_growing: false.into(),
+            len: len.into(),
+            num_pushed: len.into(),
+        }
+    }
+
     fn write_permit<T, P, S>(&self, col: &PinnedConcurrentCol<T, P, S>, idx: usize) -> WritePermit
     where
-        P: PinnedVec<T>,
+        P: ConcurrentPinnedVec<T>,
         S: ConcurrentState,
     {
         match idx.cmp(&col.capacity()) {
