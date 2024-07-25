@@ -1,4 +1,4 @@
-use orx_concurrent_iter::{ExactSizeConcurrentIter, IntoConcurrentIter};
+use orx_concurrent_iter::{ConcurrentIter, IntoConcurrentIter};
 use orx_concurrent_ordered_bag::*;
 use orx_pinned_vec::IntoConcurrentPinnedVec;
 use test_case::test_matrix;
@@ -10,7 +10,7 @@ fn parallel_map<In, Out, Map, Inputs>(
     chunk_size: usize,
 ) -> ConcurrentOrderedBag<Out>
 where
-    Inputs: ExactSizeConcurrentIter<Item = In>,
+    Inputs: ConcurrentIter<Item = In>,
     Map: Fn(In) -> Out + Send + Sync,
     Out: Send + Sync,
 {

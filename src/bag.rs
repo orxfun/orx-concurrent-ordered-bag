@@ -147,9 +147,9 @@ use std::cmp::Ordering;
 /// As you may see, we are not required to share the work manually, we simply use a `while let Some` loop. The work is pulled by threads from the iterator. This both leads to an efficient implementation especially in cases of heterogeneous work loads of each task and automatically provides the safety requirements.
 ///
 ///
-/// ### Parallel Map with `ExactSizeConcurrentIter`
+/// ### Parallel Map with `ConcurrentIter`
 ///
-/// A further performance improvement to the parallel map implementation above is to distribute the tasks among the threads in chunks. The aim of this approach is to avoid false sharing, you may see further details [here](https://docs.rs/orx-concurrent-bag/latest/orx_concurrent_bag/#section-performance-notes). This can be achieved by pairing an [`ExactSizeConcurrentIter`](https://docs.rs/orx-concurrent-iter/latest/orx_concurrent_iter/trait.ExactSizeConcurrentIter.html) rather than a ConcurrentIter with the `set_values` method of the `ConcurrentOrderedBag`.
+/// A further performance improvement to the parallel map implementation above is to distribute the tasks among the threads in chunks. The aim of this approach is to avoid false sharing, you may see further details [here](https://docs.rs/orx-concurrent-bag/latest/orx_concurrent_bag/#section-performance-notes). This can be achieved by pairing an [`ConcurrentIter`](https://docs.rs/orx-concurrent-iter/latest/orx_concurrent_iter/trait.ConcurrentIter.html) rather than a ConcurrentIter with the `set_values` method of the `ConcurrentOrderedBag`.
 ///
 /// ```rust
 /// use orx_concurrent_ordered_bag::*;
@@ -162,7 +162,7 @@ use std::cmp::Ordering;
 ///     chunk_size: usize,
 /// ) -> ConcurrentOrderedBag<Out>
 /// where
-///     Inputs: ExactSizeConcurrentIter<Item = In>,
+///     Inputs: ConcurrentIter<Item = In>,
 ///     Map: Fn(In) -> Out + Send + Sync,
 ///     Out: Send + Sync,
 /// {
