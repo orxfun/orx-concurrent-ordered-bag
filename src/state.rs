@@ -8,12 +8,12 @@ pub struct ConcurrentOrderedBagState {
     num_pushed: AtomicUsize,
 }
 
-impl ConcurrentState for ConcurrentOrderedBagState {
-    fn zero_memory(&self) -> bool {
-        false
+impl<T> ConcurrentState<T> for ConcurrentOrderedBagState {
+    fn fill_memory_with(&self) -> Option<fn() -> T> {
+        None
     }
 
-    fn new_for_pinned_vec<T, P: PinnedVec<T>>(pinned_vec: &P) -> Self {
+    fn new_for_pinned_vec<P: PinnedVec<T>>(pinned_vec: &P) -> Self {
         Self {
             is_growing: false.into(),
             len: pinned_vec.len().into(),
@@ -21,7 +21,7 @@ impl ConcurrentState for ConcurrentOrderedBagState {
         }
     }
 
-    fn new_for_con_pinned_vec<T, P: ConcurrentPinnedVec<T>>(_: &P, len: usize) -> Self {
+    fn new_for_con_pinned_vec<P: ConcurrentPinnedVec<T>>(_: &P, len: usize) -> Self {
         Self {
             is_growing: false.into(),
             len: len.into(),
@@ -29,10 +29,9 @@ impl ConcurrentState for ConcurrentOrderedBagState {
         }
     }
 
-    fn write_permit<T, P, S>(&self, col: &PinnedConcurrentCol<T, P, S>, idx: usize) -> WritePermit
+    fn write_permit<P>(&self, col: &PinnedConcurrentCol<T, P, Self>, idx: usize) -> WritePermit
     where
         P: ConcurrentPinnedVec<T>,
-        S: ConcurrentState,
     {
         match idx.cmp(&col.capacity()) {
             std::cmp::Ordering::Less => WritePermit::JustWrite,
