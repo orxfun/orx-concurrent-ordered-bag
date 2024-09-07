@@ -1,8 +1,8 @@
 use crate::{failures::IntoInnerResult, state::ConcurrentOrderedBagState};
+use core::cmp::Ordering;
 use orx_pinned_concurrent_col::PinnedConcurrentCol;
 use orx_pinned_vec::IntoConcurrentPinnedVec;
 use orx_split_vec::{Doubling, SplitVec};
-use std::cmp::Ordering;
 
 /// An efficient, convenient and lightweight grow-only concurrent data structure allowing high performance and ordered concurrent collection.
 ///
