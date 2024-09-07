@@ -1,6 +1,6 @@
+use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use orx_pinned_concurrent_col::{ConcurrentState, PinnedConcurrentCol, WritePermit};
 use orx_pinned_vec::{ConcurrentPinnedVec, PinnedVec};
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 pub struct ConcurrentOrderedBagState {
     is_growing: AtomicBool,
@@ -34,14 +34,14 @@ impl<T> ConcurrentState<T> for ConcurrentOrderedBagState {
         P: ConcurrentPinnedVec<T>,
     {
         match idx.cmp(&col.capacity()) {
-            std::cmp::Ordering::Less => WritePermit::JustWrite,
+            core::cmp::Ordering::Less => WritePermit::JustWrite,
             _ => {
                 let was_growing = self.is_growing.fetch_or(true, Ordering::SeqCst);
                 let can_grow = !was_growing;
 
                 match can_grow {
                     true => {
-                        let new_capacity = std::hint::black_box(col.capacity());
+                        let new_capacity = core::hint::black_box(col.capacity());
                         if idx < new_capacity {
                             self.is_growing.store(false, Ordering::SeqCst);
                             WritePermit::JustWrite
@@ -68,7 +68,7 @@ impl<T> ConcurrentState<T> for ConcurrentOrderedBagState {
 
     fn try_get_no_gap_len(&self) -> Option<usize> {
         match self.num_pushed().cmp(&self.len()) {
-            std::cmp::Ordering::Equal => Some(self.len()),
+            core::cmp::Ordering::Equal => Some(self.len()),
             _ => None,
         }
     }
