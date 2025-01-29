@@ -1,6 +1,6 @@
 use orx_concurrent_iter::{ConcurrentIter, IntoConcurrentIter, IterIntoConcurrentIter};
 use orx_concurrent_ordered_bag::*;
-use orx_pinned_vec::PinnedVec;
+use orx_iterable::*;
 use test_case::test_matrix;
 
 const NUM_RERUNS: usize = 1;
