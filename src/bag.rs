@@ -106,6 +106,7 @@ use orx_split_vec::{Doubling, SplitVec};
 /// ```rust
 /// use orx_concurrent_ordered_bag::*;
 /// use orx_concurrent_iter::*;
+/// use orx_iterable::*;
 ///
 /// fn parallel_map<In, Out, Map, Inputs>(
 ///     num_threads: usize,
@@ -154,6 +155,7 @@ use orx_split_vec::{Doubling, SplitVec};
 /// ```rust
 /// use orx_concurrent_ordered_bag::*;
 /// use orx_concurrent_iter::*;
+/// use orx_iterable::*;
 ///
 /// fn parallel_map<In, Out, Map, Inputs>(
 ///     num_threads: usize,
