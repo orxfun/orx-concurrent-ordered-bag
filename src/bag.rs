@@ -1,7 +1,7 @@
 use crate::{failures::IntoInnerResult, state::ConcurrentOrderedBagState};
 use core::cmp::Ordering;
 use orx_pinned_concurrent_col::PinnedConcurrentCol;
-use orx_pinned_vec::IntoConcurrentPinnedVec;
+use orx_pinned_vec::{ConcurrentPinnedVec, IntoConcurrentPinnedVec};
 use orx_split_vec::{Doubling, SplitVec};
 
 /// An efficient, convenient and lightweight grow-only concurrent data structure allowing high performance and ordered concurrent collection.
@@ -384,7 +384,7 @@ where
         &self,
         begin_idx: usize,
         num_items: usize,
-    ) -> P::SliceMutIter<'_> {
+    ) -> <P::ConPinnedVec as ConcurrentPinnedVec<T>>::SliceMutIter<'_> {
         self.core.n_items_buffer_as_mut_slices(begin_idx, num_items)
     }
 
