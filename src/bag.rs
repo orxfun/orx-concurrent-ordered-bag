@@ -119,13 +119,13 @@ use orx_split_vec::{Doubling, SplitVec};
 ///     Out: Send + Sync,
 /// {
 ///     let outputs = ConcurrentOrderedBag::new();
-///     let inputs = &inputs;
+///     let inputs = &inputs.enumerate();
 ///     let out = &outputs;
 ///     std::thread::scope(|s| {
 ///         for _ in 0..num_threads {
 ///             s.spawn(|| {
-///                 while let Some(next) = inputs.next_id_and_value() {
-///                     unsafe { out.set_value(next.idx, map(next.value)) };
+///                 while let Some((idx, value)) = inputs.next() {
+///                     unsafe { out.set_value(idx, map(value)) };
 ///                 }
 ///             });
 ///         }
@@ -174,8 +174,9 @@ use orx_split_vec::{Doubling, SplitVec};
 ///     std::thread::scope(|s| {
 ///         for _ in 0..num_threads {
 ///             s.spawn(|| {
-///                 while let Some(next) = inputs.next_chunk(chunk_size) {
-///                     unsafe { out.set_values(next.begin_idx, next.values.map(map)) };
+///                 let mut chunks_puller = inputs.chunk_puller(chunk_size);
+///                 while let Some((begin_idx, values)) = chunks_puller.pull_with_idx() {
+///                     unsafe { out.set_values(begin_idx, values.map(map)) };
 ///                 }
 ///             });
 ///         }

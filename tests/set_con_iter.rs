@@ -12,7 +12,7 @@ const NUM_RERUNS: usize = 1;
 fn vec_into_con_iter(num_threads: usize, len: usize) {
     for _ in 0..NUM_RERUNS {
         let vec: Vec<_> = (0..len).collect();
-        let iter = vec.into_con_iter();
+        let iter = vec.into_con_iter().enumerate();
         let con_iter = &iter;
 
         let bag = ConcurrentOrderedBag::new();
@@ -21,7 +21,7 @@ fn vec_into_con_iter(num_threads: usize, len: usize) {
         std::thread::scope(|s| {
             for _ in 0..num_threads {
                 s.spawn(move || {
-                    for (idx, value) in con_iter.ids_and_values() {
+                    while let Some((idx, value)) = con_iter.next() {
                         unsafe { con_bag.set_value(idx, process(value)) };
                     }
                 });
@@ -55,7 +55,8 @@ fn iter_into_con_iter_long_yield(num_threads: usize, len: usize) {
                 assert!(sum > 0f64);
                 x
             })
-            .into_con_iter();
+            .iter_into_con_iter()
+            .enumerate();
         let con_iter = &iter;
 
         let bag = ConcurrentOrderedBag::new();
@@ -64,7 +65,7 @@ fn iter_into_con_iter_long_yield(num_threads: usize, len: usize) {
         std::thread::scope(|s| {
             for _ in 0..num_threads {
                 s.spawn(move || {
-                    for (idx, value) in con_iter.ids_and_values() {
+                    while let Some((idx, value)) = con_iter.next() {
                         unsafe { con_bag.set_value(idx, process(*value)) };
                     }
                 });
@@ -86,7 +87,7 @@ fn iter_into_con_iter_long_yield(num_threads: usize, len: usize) {
 fn vec_into_con_iter_long_process(num_threads: usize, len: usize) {
     for _ in 0..NUM_RERUNS {
         let vec: Vec<_> = (0..len).collect();
-        let iter = vec.into_con_iter();
+        let iter = vec.into_con_iter().enumerate();
         let con_iter = &iter;
 
         let bag = ConcurrentOrderedBag::new();
@@ -95,7 +96,7 @@ fn vec_into_con_iter_long_process(num_threads: usize, len: usize) {
         std::thread::scope(|s| {
             for _ in 0..num_threads {
                 s.spawn(move || {
-                    for (idx, value) in con_iter.ids_and_values() {
+                    while let Some((idx, value)) = con_iter.next() {
                         let mut sum = 1f64;
                         for i in 0..(1024 * 16) {
                             let y = ((i + 1 + value) as f64).ln();

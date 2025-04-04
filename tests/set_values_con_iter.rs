@@ -1,4 +1,4 @@
-use orx_concurrent_iter::{ConcurrentIter, IntoConcurrentIter};
+use orx_concurrent_iter::{ChunkPuller, ConcurrentIter, IntoConcurrentIter};
 use orx_concurrent_ordered_bag::*;
 use orx_iterable::*;
 use test_case::test_matrix;
@@ -22,8 +22,9 @@ fn write_at_odd_even_batches(num_threads: usize, len: usize, chunk_size: usize) 
         std::thread::scope(|s| {
             for _ in 0..num_threads {
                 s.spawn(move || {
-                    while let Some(next) = con_iter.next_chunk(chunk_size) {
-                        unsafe { con_bag.set_values(next.begin_idx, next.values.map(process)) };
+                    let mut chunks_puller = con_iter.chunk_puller(chunk_size);
+                    while let Some((begin_idx, values)) = chunks_puller.pull_with_idx() {
+                        unsafe { con_bag.set_values(begin_idx, values.map(process)) };
                     }
                 });
             }
@@ -54,8 +55,9 @@ fn vec_into_con_iter_long_process(num_threads: usize, len: usize, chunk_size: us
         std::thread::scope(|s| {
             for _ in 0..num_threads {
                 s.spawn(move || {
-                    while let Some(next) = con_iter.next_chunk(chunk_size) {
-                        let idx = next.begin_idx;
+                    let mut chunks_puller = con_iter.chunk_puller(chunk_size);
+                    while let Some((begin_idx, values)) = chunks_puller.pull_with_idx() {
+                        let idx = begin_idx;
                         let value = idx + 1;
                         let mut sum = 1f64;
                         for i in 0..(1024 * 16) {
@@ -65,7 +67,7 @@ fn vec_into_con_iter_long_process(num_threads: usize, len: usize, chunk_size: us
                         }
                         assert!(sum > 0f64);
 
-                        unsafe { con_bag.set_values(next.begin_idx, next.values.map(process)) };
+                        unsafe { con_bag.set_values(begin_idx, values.map(process)) };
                     }
                 });
             }
