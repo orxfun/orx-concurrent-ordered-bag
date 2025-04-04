@@ -326,7 +326,7 @@ where
     ///
     /// In a concurrent program, the caller is responsible to make sure that each position is written exactly and only once.
     pub unsafe fn set_value(&self, idx: usize, value: T) {
-        self.core.write(idx, value);
+        unsafe { self.core.write(idx, value) };
     }
 
     /// Sets the elements in the range of `begin_idx..values.len()` positions of the collection to the given `values`.
@@ -341,7 +341,7 @@ where
     {
         let values = values.into_iter();
         let num_items = values.len();
-        self.set_n_values(begin_idx, num_items, values)
+        unsafe { self.set_n_values(begin_idx, num_items, values) }
     }
 
     /// Sets the elements in the range of `begin_idx..(begin_idx + num_items)` positions of the collection to the given `values`.
@@ -359,7 +359,7 @@ where
     ) where
         IntoIter: IntoIterator<Item = T>,
     {
-        self.core.write_n_items(begin_idx, num_items, values)
+        unsafe { self.core.write_n_items(begin_idx, num_items, values) }
     }
 
     /// Reserves and returns an iterator of mutable slices for `num_items` positions starting from the `begin_idx`-th position.
@@ -385,7 +385,7 @@ where
         begin_idx: usize,
         num_items: usize,
     ) -> <P::ConPinnedVec as ConcurrentPinnedVec<T>>::SliceMutIter<'_> {
-        self.core.n_items_buffer_as_mut_slices(begin_idx, num_items)
+        unsafe { self.core.n_items_buffer_as_mut_slices(begin_idx, num_items) }
     }
 
     /// Clears the concurrent bag.
