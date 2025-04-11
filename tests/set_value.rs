@@ -79,7 +79,7 @@ fn non_uniform() {
 #[cfg(not(miri))]
 const LEN: [usize; 5] = [4, 124, 348, 1024, 2587];
 #[cfg(miri)]
-const LEN: [usize; 5] = [4, 124, 348];
+const LEN: [usize; 3] = [4, 124, 348];
 
 #[test_matrix([1, 2, 4, 8])]
 fn early_alloc(num_additional_threads: usize) {
