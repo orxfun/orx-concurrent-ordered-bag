@@ -1,7 +1,7 @@
 use crate::{failures::IntoInnerResult, state::ConcurrentOrderedBagState};
 use core::cmp::Ordering;
 use orx_pinned_concurrent_col::PinnedConcurrentCol;
-use orx_pinned_vec::IntoConcurrentPinnedVec;
+use orx_pinned_vec::{ConcurrentPinnedVec, IntoConcurrentPinnedVec};
 use orx_split_vec::{Doubling, SplitVec};
 
 /// An efficient, convenient and lightweight grow-only concurrent data structure allowing high performance and ordered concurrent collection.
@@ -119,13 +119,13 @@ use orx_split_vec::{Doubling, SplitVec};
 ///     Out: Send + Sync,
 /// {
 ///     let outputs = ConcurrentOrderedBag::new();
-///     let inputs = &inputs;
+///     let inputs = &inputs.enumerate();
 ///     let out = &outputs;
 ///     std::thread::scope(|s| {
 ///         for _ in 0..num_threads {
 ///             s.spawn(|| {
-///                 while let Some(next) = inputs.next_id_and_value() {
-///                     unsafe { out.set_value(next.idx, map(next.value)) };
+///                 while let Some((idx, value)) = inputs.next() {
+///                     unsafe { out.set_value(idx, map(value)) };
 ///                 }
 ///             });
 ///         }
@@ -174,8 +174,9 @@ use orx_split_vec::{Doubling, SplitVec};
 ///     std::thread::scope(|s| {
 ///         for _ in 0..num_threads {
 ///             s.spawn(|| {
-///                 while let Some(next) = inputs.next_chunk(chunk_size) {
-///                     unsafe { out.set_values(next.begin_idx, next.values.map(map)) };
+///                 let mut chunks_puller = inputs.chunk_puller(chunk_size);
+///                 while let Some((begin_idx, values)) = chunks_puller.pull_with_idx() {
+///                     unsafe { out.set_values(begin_idx, values.map(map)) };
 ///                 }
 ///             });
 ///         }
@@ -326,7 +327,7 @@ where
     ///
     /// In a concurrent program, the caller is responsible to make sure that each position is written exactly and only once.
     pub unsafe fn set_value(&self, idx: usize, value: T) {
-        self.core.write(idx, value);
+        unsafe { self.core.write(idx, value) };
     }
 
     /// Sets the elements in the range of `begin_idx..values.len()` positions of the collection to the given `values`.
@@ -341,7 +342,7 @@ where
     {
         let values = values.into_iter();
         let num_items = values.len();
-        self.set_n_values(begin_idx, num_items, values)
+        unsafe { self.set_n_values(begin_idx, num_items, values) }
     }
 
     /// Sets the elements in the range of `begin_idx..(begin_idx + num_items)` positions of the collection to the given `values`.
@@ -359,7 +360,7 @@ where
     ) where
         IntoIter: IntoIterator<Item = T>,
     {
-        self.core.write_n_items(begin_idx, num_items, values)
+        unsafe { self.core.write_n_items(begin_idx, num_items, values) }
     }
 
     /// Reserves and returns an iterator of mutable slices for `num_items` positions starting from the `begin_idx`-th position.
@@ -384,8 +385,8 @@ where
         &self,
         begin_idx: usize,
         num_items: usize,
-    ) -> P::SliceMutIter<'_> {
-        self.core.n_items_buffer_as_mut_slices(begin_idx, num_items)
+    ) -> <P::ConPinnedVec as ConcurrentPinnedVec<T>>::SliceMutIter<'_> {
+        unsafe { self.core.n_items_buffer_as_mut_slices(begin_idx, num_items) }
     }
 
     /// Clears the concurrent bag.

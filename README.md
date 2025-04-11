@@ -115,6 +115,7 @@ On the other hand, a very simple yet efficient implementation can be achieved wi
 ```rust
 use orx_concurrent_ordered_bag::*;
 use orx_concurrent_iter::*;
+use orx_iterable::Collection;
 
 fn parallel_map<In, Out, Map, Inputs>(
     num_threads: usize,
@@ -126,12 +127,13 @@ where
     Map: Fn(In) -> Out + Send + Sync,
     Out: Send + Sync,
 {
+    let inputs = inputs.enumerate();
     let outputs = ConcurrentOrderedBag::new();
     std::thread::scope(|s| {
         for _ in 0..num_threads {
             s.spawn(|| {
-                while let Some(next) = inputs.next_id_and_value() {
-                    unsafe { outputs.set_value(next.idx, map(next.value)) };
+                while let Some((idx, value)) = inputs.next() {
+                    unsafe { outputs.set_value(idx, map(value)) };
                 }
             });
         }
@@ -142,14 +144,14 @@ where
 let len = 2465;
 let input: Vec<_> = (0..len).map(|x| x.to_string()).collect();
 
-// let bag = parallel_map(4, input.into_con_iter(), &|x| x.to_string().len());
+let bag = parallel_map(4, input.into_con_iter(), &|x| x.to_string().len());
 
-// let output = unsafe { bag.into_inner().unwrap_only_if_counts_match() };
-// assert_eq!(output.len(), len);
+let output = unsafe { bag.into_inner().unwrap_only_if_counts_match() };
+assert_eq!(output.len(), len);
 
-// for (i, value) in output.iter().enumerate() {
-//     assert_eq!(value, &i.to_string().len());
-// }
+for (i, value) in output.iter().enumerate() {
+    assert_eq!(value, &i.to_string().len());
+}
 ```
 
 As you may see, no manual work or care is required to satisfy the safety requirements. Each element of the iterator is processed and written exactly once, just as it would in a sequential implementation.
@@ -161,6 +163,7 @@ A further and significant performance improvement to the parallel map implementa
 ```rust
 use orx_concurrent_ordered_bag::*;
 use orx_concurrent_iter::*;
+use orx_iterable::Collection;
 
 fn parallel_map<In, Out, Map, Inputs>(
     num_threads: usize,
@@ -177,8 +180,9 @@ where
     std::thread::scope(|s| {
         for _ in 0..num_threads {
             s.spawn(|| {
-                while let Some(next) = inputs.next_chunk(chunk_size) {
-                    unsafe { outputs.set_values(next.begin_idx, next.values.map(map)) };
+                let mut chunks_puller = inputs.chunk_puller(chunk_size);
+                while let Some((begin_idx, values)) = chunks_puller.pull_with_idx() {
+                    unsafe { outputs.set_values(begin_idx, values.map(map)) };
                 }
             });
         }
@@ -188,12 +192,12 @@ where
 
 let len = 2465;
 let input: Vec<_> = (0..len).map(|x| x.to_string()).collect();
-// let bag = parallel_map(4, input.into_con_iter(), &|x| x.to_string().len(), 64);
+let bag = parallel_map(4, input.into_con_iter(), &|x| x.to_string().len(), 64);
 
-// let output = unsafe { bag.into_inner().unwrap_only_if_counts_match() };
-// for (i, value) in output.iter().enumerate() {
-//     assert_eq!(value, &i.to_string().len());
-// }
+let output = unsafe { bag.into_inner().unwrap_only_if_counts_match() };
+for (i, value) in output.iter().enumerate() {
+    assert_eq!(value, &i.to_string().len());
+}
 ```
 
 ## Concurrent State and Properties

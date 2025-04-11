@@ -60,17 +60,17 @@ impl<P> IntoInnerResult<P> {
     ///   * If the first condition was satisfied; then, this condition is sufficient to conclude that the bag can be converted to the underlying vector of `m + 1` elements.
     pub unsafe fn unwrap(self) -> P {
         match self {
-            IntoInnerResult::LenMatchesNumPushes { len: _, vec } => vec.unwrap(),
+            IntoInnerResult::LenMatchesNumPushes { len: _, vec } => unsafe { vec.unwrap() },
             IntoInnerResult::GreaterLenThanNumPushes {
                 len: _,
                 num_pushed: _,
                 vec,
-            } => vec.unwrap(),
+            } => unsafe { vec.unwrap() },
             IntoInnerResult::LessLenThanNumPushes {
                 len: _,
                 num_pushed: _,
                 vec,
-            } => vec.unwrap(),
+            } => unsafe { vec.unwrap() },
         }
     }
 
@@ -92,17 +92,23 @@ impl<P> IntoInnerResult<P> {
     #[allow(clippy::panic)]
     pub unsafe fn unwrap_only_if_counts_match(self) -> P {
         match self {
-            IntoInnerResult::LenMatchesNumPushes { len: _, vec } => vec.unwrap(),
+            IntoInnerResult::LenMatchesNumPushes { len: _, vec } => unsafe { vec.unwrap() },
             IntoInnerResult::GreaterLenThanNumPushes {
                 len,
                 num_pushed,
                 vec: _,
-            } => panic!("OrderedConcurrentBag surely contains gaps: {} elements are pushed; however, maximum index is {}.", num_pushed, len),
+            } => panic!(
+                "OrderedConcurrentBag surely contains gaps: {} elements are pushed; however, maximum index is {}.",
+                num_pushed, len
+            ),
             IntoInnerResult::LessLenThanNumPushes {
                 len,
                 num_pushed,
                 vec: _,
-            } => panic!("OrderedConcurrentBag surely contains gaps: {} elements are pushed; however, maximum index is {}.", num_pushed, len),
+            } => panic!(
+                "OrderedConcurrentBag surely contains gaps: {} elements are pushed; however, maximum index is {}.",
+                num_pushed, len
+            ),
         }
     }
 }
