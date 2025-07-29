@@ -16,12 +16,12 @@ keywords = [
 categories = ["data-structures", "concurrency", "rust-patterns", "no-std"]
 
 [dependencies]
-orx-pinned-vec = "3.16.0"
-orx-fixed-vec = { git = "https://github.com/orxfun/orx-fixed-vec", branch = "new-concurrent-iter-version", default-features = false }
-orx-split-vec = { git = "https://github.com/orxfun/orx-split-vec", branch = "new-concurrent-iter-version", default-features = false }
-orx-pinned-concurrent-col = { git = "https://github.com/orxfun/orx-pinned-concurrent-col", branch = "new-pinned-vector-versions", default-features = false }
+orx-pinned-vec = { version = "3.17.0", default-features = false }
+orx-fixed-vec = { version = "3.18.0", default-features = false }
+orx-split-vec = { version = "3.18.0", default-features = false }
+orx-pinned-concurrent-col = { version = "2.14.0", default-features = false }
 
 [dev-dependencies]
-orx-concurrent-iter = { git = "https://github.com/orxfun/orx-concurrent-iter", branch = "relaxing-send-trait-bound", default-features = false }
+orx-concurrent-iter = { version = "2.3.0", default-features = false }
 orx-iterable = "1.3.0"
 test-case = "3.3.1"
