@@ -326,7 +326,10 @@ where
     /// # Safety
     ///
     /// In a concurrent program, the caller is responsible to make sure that each position is written exactly and only once.
-    pub unsafe fn set_value(&self, idx: usize, value: T) {
+    pub unsafe fn set_value(&self, idx: usize, value: T)
+    where
+        T: Send,
+    {
         unsafe { self.core.write(idx, value) };
     }
 
@@ -339,6 +342,7 @@ where
     where
         IntoIter: IntoIterator<Item = T, IntoIter = Iter>,
         Iter: Iterator<Item = T> + ExactSizeIterator,
+        T: Send,
     {
         let values = values.into_iter();
         let num_items = values.len();
@@ -359,6 +363,7 @@ where
         values: IntoIter,
     ) where
         IntoIter: IntoIterator<Item = T>,
+        T: Send,
     {
         unsafe { self.core.write_n_items(begin_idx, num_items, values) }
     }
@@ -385,7 +390,10 @@ where
         &self,
         begin_idx: usize,
         num_items: usize,
-    ) -> <P::ConPinnedVec as ConcurrentPinnedVec<T>>::SliceMutIter<'_> {
+    ) -> <P::ConPinnedVec as ConcurrentPinnedVec<T>>::SliceMutIter<'_>
+    where
+        T: Send,
+    {
         unsafe { self.core.n_items_buffer_as_mut_slices(begin_idx, num_items) }
     }
 
@@ -409,6 +417,6 @@ where
 
 // TRAITS
 
-unsafe impl<T: Sync, P: IntoConcurrentPinnedVec<T>> Sync for ConcurrentOrderedBag<T, P> {}
+unsafe impl<T, P: IntoConcurrentPinnedVec<T>> Sync for ConcurrentOrderedBag<T, P> {}
 
-unsafe impl<T: Send, P: IntoConcurrentPinnedVec<T>> Send for ConcurrentOrderedBag<T, P> {}
+unsafe impl<T, P: IntoConcurrentPinnedVec<T>> Send for ConcurrentOrderedBag<T, P> {}
