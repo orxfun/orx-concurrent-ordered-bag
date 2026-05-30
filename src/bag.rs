@@ -401,6 +401,16 @@ where
     pub fn clear(&mut self) {
         unsafe { self.core.clear(self.core.state().len()) };
     }
+
+    /// Returns a mutable reference to the element at the index-th position.
+    ///
+    /// # Safety
+    ///
+    /// Reading the pointer before writing its value will result in UB.
+    #[inline(always)]
+    pub unsafe fn ptr_mut(&self, idx: usize) -> *mut T {
+        unsafe { self.core.ptr_mut(idx) }
+    }
 }
 
 // HELPERS

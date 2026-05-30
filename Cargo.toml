@@ -19,7 +19,7 @@ categories = ["data-structures", "concurrency", "rust-patterns", "no-std"]
 orx-pinned-vec = { version = "3.21.0", default-features = false }
 orx-fixed-vec = { version = "3.22.0", default-features = false }
 orx-split-vec = { version = "3.22.0", default-features = false }
-orx-pinned-concurrent-col = { version = "2.18.0", default-features = false }
+orx-pinned-concurrent-col = { git = "https://github.com/orxfun/orx-pinned-concurrent-col/", branch = "expose-unsafe-ptr", default-features = false }
 
 [dev-dependencies]
 orx-concurrent-iter = { version = "3.1.0", default-features = false }
