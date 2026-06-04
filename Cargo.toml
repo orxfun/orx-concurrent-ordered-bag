@@ -16,10 +16,10 @@ keywords = [
 categories = ["data-structures", "concurrency", "rust-patterns", "no-std"]
 
 [dependencies]
-orx-pinned-vec = { version = "3.21.0", default-features = false }
-orx-fixed-vec = { version = "3.22.0", default-features = false }
-orx-split-vec = { version = "3.22.0", default-features = false }
-orx-pinned-concurrent-col = { git = "https://github.com/orxfun/orx-pinned-concurrent-col/", branch = "expose-unsafe-ptr", default-features = false }
+orx-pinned-vec = { git = "https://github.com/orxfun/orx-pinned-vec", branch = "v4", default-features = false }
+orx-fixed-vec = { git = "https://github.com/orxfun/orx-fixed-vec", branch = "v4", default-features = false }
+orx-split-vec = { git = "https://github.com/orxfun/orx-split-vec", branch = "v4", default-features = false }
+orx-pinned-concurrent-col = { git = "https://github.com/orxfun/orx-pinned-concurrent-col", branch = "v3", default-features = false }
 
 [dev-dependencies]
 orx-concurrent-iter = { version = "3.1.0", default-features = false }
