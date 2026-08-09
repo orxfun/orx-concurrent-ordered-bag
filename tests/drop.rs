@@ -62,11 +62,9 @@ fn fill_bag<P: IntoConcurrentPinnedVec<String>>(
     std::thread::scope(move |s| {
         for i in 0..num_threads {
             s.spawn(move || {
-                let mut idx = i * num_items_per_thread;
-                for value in 0..num_items_per_thread {
+                for (idx, value) in (i * num_items_per_thread..).zip(0..num_items_per_thread) {
                     let new_value = format!("from-thread-{}", value);
                     unsafe { con_bag.set_value(idx, new_value) };
-                    idx += 1;
                 }
             });
         }
